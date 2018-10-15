@@ -2,15 +2,15 @@
 
 namespace Music
 {
-    public class OctaveTone
+    public class ToneClass
     {
-        OctaveTone Base;
+        ToneClass Base;
         private string name;
         int Modification;
         public string Name
         {
             get
-            {
+            { 
                 if (Base == null)
                 {
                     return name;
@@ -21,11 +21,11 @@ namespace Music
                 }
             }
         }
-        public OctaveTone(string Name)
+        public ToneClass(string Name)
         {
             this.name = Name;
         }
-        public OctaveTone(OctaveTone Base, int Modification)
+        public ToneClass(ToneClass Base, int Modification)
         {
             this.Base = Base;
             this.Modification = Modification;
@@ -41,7 +41,7 @@ namespace Music
             {
                 return false;
             }
-            OctaveTone tone = (OctaveTone)obj;
+            ToneClass tone = (ToneClass)obj;
             if (Base != null)
             {
                 return Base.Equals(tone.Base) && Modification == tone.Modification;

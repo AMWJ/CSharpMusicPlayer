@@ -7,21 +7,31 @@ namespace Music
 {
     public class Scale
     {
-        IList<OctaveTone> Tones;
-        public Scale(IList<OctaveTone> Tones)
+        IList<ToneClass> Tones;
+        public Scale(IList<ToneClass> Tones)
         {
             this.Tones = Tones;
         }
-        public OctaveTone GetTone(String name) {
+        public ToneClass GetTone(String name) {
             name = name.ToUpper();
             return Tones.First((ot) => ot.Name.ToUpper() == name);
         }
-        public int ToneIndex(OctaveTone Tone) {
+        public int ToneIndex(ToneClass Tone) {
             return Tones.IndexOf(Tone);
         }
-        public OctaveTone this[int index]
+		public ToneClass ToneAtIndex(int Index) {
+			return Tones[Index];
+		}
+		public int ToneCount()
+		{
+			return Tones.Count;
+		}
+        public ToneClass this[int index]
         {
             get { return Tones[index]; }
         }
+		public IKey DefaultKey() {
+			return new EmptyKey(this);
+		}
     }
 }

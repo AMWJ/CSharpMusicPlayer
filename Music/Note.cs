@@ -6,23 +6,25 @@ namespace Music
 {
     public class Note : IPlayable
     {
-        public ISingleSound Sound { get; private set; }
-        public double Length { get; private set; }
+        public ISingleSound Sound { get; }
+        public double Length { get; }
+		public Articulation Articulation { get; }
 
-        public Note(ISingleSound sound, double length)
-        {
-            this.Sound = sound;
-            this.Length = length;
-        }
+		public Note(ISingleSound sound, double length, Articulation Articulation = Articulation.Staccato)
+		{
+			this.Sound = sound;
+			this.Length = length;
+			this.Articulation = Articulation;
+		}
 
-        public double playWithPlayer(double offset, IPlayer player)
+        public double PlayWithPlayer(IPlayer player, double offset = 0)
         {
             player.Play(offset, this);
-            return Length;
+            return offset + Length;
         }
         public override string ToString()
         {
             return Sound.ToString() + Length;
         }
-    }
+	}
 }

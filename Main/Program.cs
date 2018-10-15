@@ -1,68 +1,50 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
 using Music;
+using MusicParser;
+using MusicPlayer;
+using System.IO;
 
-namespace ConsoleApp1
+namespace Main
 {
     class Program
     {
-        static void Main(string[] args)
-        {
-            Console.WriteLine("Hello World!");
-
-            Temperament pythagoreanTemperament = generatePythagoreanTemperament("D");
-            Temperament equalTemperament = generateEqualTemperament();
-            Tempo tempo = new Tempo(40);
-            Player pythagoreanPlayer = new Player(pythagoreanTemperament, tempo);
-            Player equalPlayer = new Player(equalTemperament, tempo);
-            List<Measure> measures = new List<Measure>();
-            measures.Add(new Measure("AGFG", pythagoreanTemperament.Scale));
-            measures.Add(new Measure("AAA2", pythagoreanTemperament.Scale));
-            measures.Add(new Measure("GGG2", pythagoreanTemperament.Scale));
-            measures.Add(new Measure("Acc2", pythagoreanTemperament.Scale));
-			int i;
+		static void Main(string[] args)
+		{
+			Temperament equalTemperament = generateEqualTemperament();
+			Tempo tempo = new Tempo(30);
+			IPlayer equalPlayer = new OnePitchPlayer(equalTemperament, tempo);
+			FileStream stream = new FileStream("test.abc", FileMode.Open);
+			StreamReader reader = new StreamReader(stream);
+			ABCSongParser parser = new ABCSongParser(equalTemperament.Scale, 1.0 /8);
+			Song song = parser.Parse(reader.ReadToEnd());
 			foreach (string letter in new List<string>() { "A", "B", "C", "D", "E", "F", "G" })
 			{
-
-
-				i = 0;
-				foreach (Measure measure in measures)
-				{
-					measure.Play(pythagoreanPlayer, i);
-					i++;
-				}
+				Temperament pythagoreanTemperament = generatePythagoreanTemperament(letter);
+				IPlayer player = new OnePitchPlayer(pythagoreanTemperament, tempo);
+				song.PlayWithPlayer(player);
 				Console.ReadLine();
 			}
-            Console.ReadLine();
-            i = 0;
-            foreach (Measure measure in measures)
-            {
-                measure.Play(equalPlayer, i);
-                i++;
-            }
-            Console.ReadLine();
-        }
+			Console.ReadLine();
+		}
         static Scale generatePythagoreanScale() {
-            OctaveTone A = new OctaveTone("A");
-            OctaveTone B = new OctaveTone("B");
-            OctaveTone C = new OctaveTone("C");
-            OctaveTone D = new OctaveTone("D");
-            OctaveTone E = new OctaveTone("E");
-            OctaveTone F = new OctaveTone("F");
-            OctaveTone G = new OctaveTone("G");
-            OctaveTone ASharp = new OctaveTone(A, 1);
-            OctaveTone CSharp = new OctaveTone(C, 1);
-            OctaveTone DSharp = new OctaveTone(D, 1);
-            OctaveTone FSharp = new OctaveTone(F, 1);
-            OctaveTone GSharp = new OctaveTone(G, 1);
-            return new Scale(new List<OctaveTone>() { C, CSharp, D, DSharp, E, F, FSharp, G, GSharp, A, ASharp, B, });
+            ToneClass A = new ToneClass("A");
+            ToneClass B = new ToneClass("B");
+            ToneClass C = new ToneClass("C");
+            ToneClass D = new ToneClass("D");
+            ToneClass E = new ToneClass("E");
+            ToneClass F = new ToneClass("F");
+            ToneClass G = new ToneClass("G");
+            ToneClass ASharp = new ToneClass(A, 1);
+            ToneClass CSharp = new ToneClass(C, 1);
+            ToneClass DSharp = new ToneClass(D, 1);
+            ToneClass FSharp = new ToneClass(F, 1);
+            ToneClass GSharp = new ToneClass(G, 1);
+            return new Scale(new List<ToneClass>() { C, CSharp, D, DSharp, E, F, FSharp, G, GSharp, A, ASharp, B, });
         }
         static Temperament generateEqualTemperament() {
             Scale pythagoreanScale = generatePythagoreanScale();
-            Dictionary<OctaveTone, double> pitches = new Dictionary<OctaveTone, double>() {
+            Dictionary<ToneClass, double> pitches = new Dictionary<ToneClass, double>() {
                 { pythagoreanScale.GetTone("A"), 1 },
                 { pythagoreanScale.GetTone("A#"), Math.Pow(2, 1.0/12) },
                 { pythagoreanScale.GetTone("B"), Math.Pow(2, 2.0/12) },
@@ -82,7 +64,7 @@ namespace ConsoleApp1
         {
             SortedSet<double> pitches = new SortedSet<double>();
             Scale pythagoreanScale = generatePythagoreanScale();
-            OctaveTone StartingFrom = pythagoreanScale.GetTone(StartingFromString);
+            ToneClass StartingFrom = pythagoreanScale.GetTone(StartingFromString);
             double StartingFrequency = generateEqualTemperament().GetFrequency(new Tone(StartingFrom, 0));
             pitches.Add(1);
             double frequency = 1;
@@ -100,13 +82,25 @@ namespace ConsoleApp1
                 pitches.Add(frequency);
             }
             int toneIndex = pythagoreanScale.ToneIndex(StartingFrom);
-            for (int i = 5 - toneIndex; i >= 0; i--)
-            {
-                double min = pitches.Min;
-                pitches.Remove(min);
-                pitches.Add(min * 2);
-            }
-            Dictionary<OctaveTone, double> pitchDict = new Dictionary<OctaveTone, double>();
+			if (toneIndex <= 5)
+			{
+				for (int i = 5 - toneIndex; i >= 0; i--)
+				{
+					double min = pitches.Min;
+					pitches.Remove(min);
+					pitches.Add(min * 2);
+				}
+			}
+			else
+			{
+				for (int i = toneIndex - 6; i > 0; i--)
+				{
+					double max = pitches.Max;
+					pitches.Remove(max);
+					pitches.Add(max / 2);
+				}
+			}
+			Dictionary<ToneClass, double> pitchDict = new Dictionary<ToneClass, double>();
             for (int i = 0; pitches.Count > 0; i++)
             {
                 pitchDict.Add(pythagoreanScale[i], pitches.Min);

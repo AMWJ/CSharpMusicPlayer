@@ -4,8 +4,8 @@ using System.Text;
 
 namespace Music
 {
-    interface IPlayable
+    public interface IPlayable
     {
-        double playWithPlayer(double offset, IPlayer player);
+        double PlayWithPlayer(IPlayer player, double offset = 0);
     }
 }
